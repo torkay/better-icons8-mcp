@@ -351,7 +351,7 @@ func (c *Client) IllustrationDownloadURL(ctx context.Context, id, mediaFormat st
 	}
 	var out DownloadURL
 	u := buildURL(HostOuch, "/api/frontend/v1/illustrations/"+id+"/download-url",
-		map[string]string{"format": mediaFormat})
+		map[string]string{"media_format": mediaFormat})
 	if err := c.GetJSON(ctx, u, &out); err != nil {
 		return nil, err
 	}
