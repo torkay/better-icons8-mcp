@@ -2,7 +2,7 @@
 
 # better-icons8-mcp
 
-**MCP server for the full Icons8 library: icons, illustrations, animated illustrations, 3D models and photos, in every format Icons8 serves.**
+**MCP server for the full Icons8 library: icons, illustrations, animated illustrations, 3D models and photos, in every format Icons8 serves, without an API key.**
 
 [![CI](https://github.com/torkay/better-icons8-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/torkay/better-icons8-mcp/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/torkay/better-icons8-mcp.svg)](https://pkg.go.dev/github.com/torkay/better-icons8-mcp)
@@ -12,39 +12,70 @@
 
 </div>
 
-Install it as a Claude Code plugin, sign in to Icons8 once in a browser window, and any MCP host can search 172 icon styles and 345 illustration styles and write SVG, Lottie, WebM, MP4, FBX, GLB and photo files to disk. There is no API key and nothing to paste.
+Works with any MCP host: Claude Code, Codex, Cursor, Windsurf, Copilot, Gemini CLI, Claude Desktop. It signs in to your existing Icons8 membership in a browser window and uses that session, so the free [GitHub Student Developer Pack](https://education.github.com/pack) plan is enough. Icons8's own MCP server serves icons only, and its SVGs need a separate $15/month subscription.
 
 ![Installing the plugin in Claude Code and signing in to Icons8](demo/quickstart.gif)
 
-## Installation
+## Install
 
-Inside Claude Code:
+### Claude Code
 
 ```
-/plugin marketplace add torkay/better-icons8-mcp
+/plugin marketplace add https://github.com/torkay/better-icons8-mcp.git
 /plugin install icons8@better-icons8-mcp
 ```
 
-Then ask Claude to connect your account. It calls `icons8_authorize`, a browser window opens on the Icons8 sign-in page, and the session is stored on your machine when you log in. That is the entire setup.
+Then prompt:
 
-The plugin fetches the server binary for your platform on first run and verifies it against the published checksum, so Go is not required.
-
-<details>
-<summary>Other MCP hosts, or no plugin system</summary>
-
-```sh
-go install github.com/torkay/better-icons8-mcp/cmd/icons8-mcp@latest
-icons8-mcp auth       # opens the sign-in window
-icons8-mcp status     # confirms the account and licence
+```
+Connect to my icons8 account using the MCP.
 ```
 
-Then register the binary. For Claude Code:
+That calls `icons8_authorize`, which opens a browser window on the Icons8 sign-in page and stores the session on your machine. It is the only setup step.
+
+The plugin fetches the server binary for your platform on first run and checks it against the published sha256, so Go is not required. It also installs the `design-assets` skill.
+
+> [!NOTE]
+> Use the full git URL. The `owner/repo` shorthand clones over SSH first and prints a fallback notice when no key is configured.
+
+### Any other host
+
+Install the binary and sign in:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/torkay/better-icons8-mcp/main/scripts/install.sh | sh
+icons8-mcp auth
+```
+
+It lands in `~/.local/bin`. Set `ICONS8_INSTALL_DIR` for somewhere else, or run `go install github.com/torkay/better-icons8-mcp/cmd/icons8-mcp@latest` to build it yourself.
+
+Then register it.
+
+Codex:
+
+```sh
+codex mcp add icons8 -- icons8-mcp
+```
+
+Gemini CLI:
+
+```sh
+gemini mcp add icons8 icons8-mcp
+```
+
+VS Code and Copilot:
+
+```sh
+code --add-mcp '{"name":"icons8","command":"icons8-mcp"}'
+```
+
+Claude Code without the plugin:
 
 ```sh
 claude mcp add icons8 -s user -- icons8-mcp
 ```
 
-For Cursor, Windsurf, VS Code agent mode and Claude Desktop:
+Cursor writes `~/.cursor/mcp.json`, Windsurf `~/.codeium/windsurf/mcp_config.json`, Claude Desktop its own config file. All three take the same shape:
 
 ```json
 {
@@ -56,30 +87,29 @@ For Cursor, Windsurf, VS Code agent mode and Claude Desktop:
 }
 ```
 
-`icons8-mcp` with no arguments is the MCP server speaking stdio, which is what the host runs. The subcommands are for the parts a person does by hand: `auth`, `status`, `tools`, and `import <file>` for machines with no display.
-
-</details>
+`icons8-mcp` with no arguments is the MCP server speaking stdio, which is what a host runs. The subcommands are for the parts a person does by hand: `auth`, `status`, `tools`, and `import <file>` for machines with no display.
 
 Downloads land in `~/.icons8-mcp/assets/{icons,illustrations,models3d,photos}/`. Download tools return the path they wrote, never the bytes. A 2 MB base64 PNG in a tool result is unusable context.
 
-## Why not just use icons8-mcp@icons8?
+## Why not use the Official MCP by Icons8?
 
-Because it only does icons, and only on a paid plan.
+It serves icons only, and SVG needs a paid key.
 
-The official server exposes two tools over hosted HTTP: icon search and icon fetch. Illustrations, animated illustrations, 3D models and photos are not behind it at any price. Its free tier returns 100x100 PNG previews that require attribution, and production SVG needs an API key from a paid Icons subscription.
+`icons8/icons8-mcp` is a hosted HTTP endpoint with two tools: icon search and icon fetch. Illustrations, animated illustrations, 3D models and photos are not behind it at any price. Without a key it returns PNG previews that require attribution. Production SVG needs an API key from the [$15/month Icons plan](https://icons8.com/icons/pricing), which covers 100 downloads a month and then charges $0.20 an icon.
 
-That subscription is the problem for anyone whose access came from the [GitHub Student Developer Pack](https://education.github.com/pack). The pack covers "downloads of all asset types with no limits on quantity, size, or format", and [Icons8 states](https://intercom.help/icons8-7fb7577e8170/en/articles/4729193-do-you-have-discounts-for-students) that it "does not include API access or the MCP server". Those require a separate Icons subscription. The licence already permits every download; only the machine-readable path is withheld.
+That subscription is the problem for anyone whose access came from the GitHub Student Developer Pack. The pack covers "downloads of all asset types with no limits on quantity, size, or format", and [Icons8 states](https://intercom.help/icons8-7fb7577e8170/en/articles/4729193-do-you-have-discounts-for-students) that it "does not include API access or the MCP server". The licence already permits every download; what is withheld is the machine-readable path to it.
 
-|  | icons8-mcp | Better icons8 mcp |
+|  | icons8-mcp@icons8 | better-icons8-mcp |
 |---|---|---|
 | Icons | ✅ | ✅ |
 | Illustrations | ❌ | ✅ |
 | Animated assets | ❌ | ✅ |
 | 3D assets | ❌ | ✅ |
 | Photos | ❌ | ✅ |
+| Icon styles | 116 | 172 |
 | Auth | Paid API key | Free student subscription |
 | Runs | Hosted HTTP | Local binary over stdio |
-| SVG | Paid tier | Reflects plan |
+| SVG | Paid tier | Whatever your plan covers |
 | Tools | 2 | 19 |
 
 > [!IMPORTANT]
@@ -128,8 +158,6 @@ That subscription is the problem for anyone whose access came from the [GitHub S
 | `icons8_authorize` | Open the sign-in window and store the session. Run once |
 | `icons8_account` | Identity, licence coverage, token expiry, asset directory |
 
-One prompt is registered, `icons8_asset_plan`. It walks an agent through choosing a style and sourcing the assets an artefact needs.
-
 ### Which format for which target
 
 | Target | Format |
@@ -147,6 +175,16 @@ One prompt is registered, `icons8_asset_plan`. It walks an agent through choosin
 | 3D in Blender or another DCC tool | `fbx` |
 | Print | `pdf` or `eps` |
 
+## Style discipline
+
+Connecting a server does not stop a model improvising artwork, and it does not stop it mixing styles. There are 172 icon styles and 345 illustration styles. Choosing one of each before searching, once, for the whole artefact, is the difference between an interface that looks designed and one that looks assembled.
+
+Three things carry that rule, so it survives outside Claude Code:
+
+- The server's MCP instructions, which any host reads on connect.
+- `icons8_asset_plan`, a registered prompt that walks an agent through picking a style and sourcing what the artefact needs.
+- [`design-assets`](plugins/icons8/skills/design-assets/SKILL.md), a skill the plugin installs. It adds the format table, a note that Icons8's "locked" badge is bookkeeping rather than a restriction, and a list of substitutions to avoid.
+
 ## How it works
 
 `icons8.com` serves its HTML behind a Cloudflare managed challenge. Its API subdomains are not challenged. That is what makes a plain HTTP client viable.
@@ -160,12 +198,6 @@ One prompt is registered, `icons8_asset_plan`. It walks an agent through choosin
 > On a machine with no display, the sign-in window cannot open. Export cookies for `icons8.com` and run `icons8-mcp import <file>` instead. [`demo/cookies.example.json`](demo/cookies.example.json) shows the expected shape.
 
 `docs/api.md` holds the endpoint map. Read it before changing a query. Several Icons8 parameters fail silently: a wrong parameter name returns HTTP 200 with unfiltered results instead of an error. Illustration filters are split across two mechanisms. `style_pretty_id` and `animated` are query parameters. `mood`, `technique` and `colors` belong inside a `meta` JSON blob. Sending one in the other's place is ignored.
-
-## The skill
-
-The plugin also installs [`design-assets`](plugins/icons8/skills/design-assets/SKILL.md), which is the part that changes agent behaviour. Connecting a server does not stop a model improvising artwork. An instruction to treat assets as part of the plan does.
-
-Its main rule is to pick one icon style and one illustration style before searching. There are 172 and 345 of them. Mixing styles is the most common reason a generated interface looks assembled rather than designed. The rest of the file is a format table, a note that the "locked" badge is bookkeeping rather than a restriction, and a list of substitutions to avoid.
 
 ## Configuration
 
