@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "icons8",
+  "displayName": "Icons8 assets",
+  "version": "0.2.0",
+  "description": "Search and download the whole Icons8 library from a coding agent: icons, illustrations, animated illustrations, 3D models and photos. Signs in through a browser window, so there is no API key to buy.",
+  "author": {
+    "name": "Torrin Kay",
+    "url": "https://github.com/torkay"
+  },
+  "homepage": "https://github.com/torkay/better-icons8-mcp",
+  "repository": "https://github.com/torkay/better-icons8-mcp",
+  "license": "MIT",
+  "keywords": [
+    "icons",
+    "illustrations",
+    "design",
+    "assets",
+    "svg",
+    "lottie",
+    "3d",
+    "photos",
+    "icons8"
+  ]
+}

@@ -1,0 +1,86 @@
+#!/bin/sh
+# Launcher for the icons8 plugin.
+#
+# The plugin ships this script rather than five platform binaries. On first run
+# it fetches the matching release from GitHub, checks it against the published
+# sha256, caches it, and execs it. Every later start is just the exec.
+#
+# Set ICONS8_MCP_BIN to a binary you built yourself to skip all of this.
+set -eu
+
+VERSION="v0.2.0"
+REPO="torkay/better-icons8-mcp"
+
+if [ -n "${ICONS8_MCP_BIN:-}" ]; then
+    exec "$ICONS8_MCP_BIN" "$@"
+fi
+
+case "$(uname -s)" in
+    Linux)   os=linux ;;
+    Darwin)  os=darwin ;;
+    MINGW*|MSYS*|CYGWIN*) os=windows ;;
+    *) echo "icons8-mcp: unsupported OS $(uname -s)" >&2; exit 1 ;;
+esac
+
+case "$(uname -m)" in
+    x86_64|amd64)  arch=amd64 ;;
+    arm64|aarch64) arch=arm64 ;;
+    *) echo "icons8-mcp: unsupported architecture $(uname -m)" >&2; exit 1 ;;
+esac
+
+# Cache next to the plugin's own data when running as a plugin, otherwise with
+# the rest of this program's state.
+data="${CLAUDE_PLUGIN_DATA:-${ICONS8_MCP_HOME:-$HOME/.icons8-mcp}}"
+bin="$data/bin/icons8-mcp-$VERSION-$os-$arch"
+[ "$os" = windows ] && bin="$bin.exe"
+
+if [ ! -x "$bin" ]; then
+    name="icons8-mcp_${VERSION}_${os}_${arch}"
+    base="https://github.com/$REPO/releases/download/$VERSION"
+    tmp="$(mktemp -d)"
+    trap 'rm -rf "$tmp"' EXIT
+
+    echo "icons8-mcp: fetching $name" >&2
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$base/$name.tar.gz" -o "$tmp/pkg.tar.gz"
+        curl -fsSL "$base/checksums.txt" -o "$tmp/checksums.txt" || true
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$tmp/pkg.tar.gz" "$base/$name.tar.gz"
+        wget -qO "$tmp/checksums.txt" "$base/checksums.txt" || true
+    else
+        echo "icons8-mcp: need curl or wget to download the server" >&2
+        exit 1
+    fi
+
+    # The script downloads and runs a binary, so verify it when the tools to do
+    # that exist. A missing checksums.txt is fatal; a missing sha256 utility is
+    # not, because refusing to start would be worse than the status quo of the
+    # TLS transport being the only guarantee.
+    if [ -s "$tmp/checksums.txt" ]; then
+        want=$(awk -v f="$name.tar.gz" '$2 == f || $2 == "*"f {print $1}' "$tmp/checksums.txt")
+        if [ -n "$want" ]; then
+            if command -v sha256sum >/dev/null 2>&1; then
+                got=$(sha256sum "$tmp/pkg.tar.gz" | cut -d' ' -f1)
+            elif command -v shasum >/dev/null 2>&1; then
+                got=$(shasum -a 256 "$tmp/pkg.tar.gz" | cut -d' ' -f1)
+            else
+                got=""
+            fi
+            if [ -n "$got" ] && [ "$got" != "$want" ]; then
+                echo "icons8-mcp: checksum mismatch for $name.tar.gz" >&2
+                echo "  expected $want" >&2
+                echo "  got      $got" >&2
+                exit 1
+            fi
+        fi
+    fi
+
+    tar -xzf "$tmp/pkg.tar.gz" -C "$tmp"
+    mkdir -p "$data/bin"
+    src="$tmp/$name/icons8-mcp"
+    [ "$os" = windows ] && src="$src.exe"
+    mv "$src" "$bin"
+    chmod +x "$bin"
+fi
+
+exec "$bin" "$@"

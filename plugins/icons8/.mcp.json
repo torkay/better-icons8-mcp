@@ -1,0 +1,5 @@
+{
+  "icons8": {
+    "command": "${CLAUDE_PLUGIN_ROOT}/bin/icons8-mcp"
+  }
+}

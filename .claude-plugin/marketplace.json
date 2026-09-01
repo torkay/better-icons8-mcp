@@ -1,0 +1,19 @@
+{
+  "name": "better-icons8-mcp",
+  "description": "The Icons8 asset library for coding agents: icons, illustrations, animated illustrations, 3D models and photos.",
+  "owner": {
+    "name": "Torrin Kay",
+    "url": "https://github.com/torkay"
+  },
+  "plugins": [
+    {
+      "name": "icons8",
+      "source": "./plugins/icons8",
+      "description": "Search and download the whole Icons8 library from a coding agent: icons, illustrations, animated illustrations, 3D models and photos. Signs in through a browser window, so there is no API key to buy.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Torrin Kay"
+      }
+    }
+  ]
+}
