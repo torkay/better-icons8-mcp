@@ -54,7 +54,10 @@ Show
 Type "claude"
 Sleep 150ms
 Enter
+# Nothing to see while it boots.
+Hide
 Wait+Screen@60s /to cycle/
+Show
 Sleep 600ms
 
 Type "Connect to my icons8 account using the MCP. Don't print my email address."
