@@ -1,0 +1,32 @@
+[
+  {
+    "domain": ".icons8.com",
+    "name": "i8token",
+    "path": "/",
+    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjAwMDAwMDAwMDAwMDAwMDAiLCJlbWFpbCI6InlvdUBleGFtcGxlLmNvbSIsInB1YmxpY0FwaUtleSI6IlBVQkxJQy1BUEktS0VZLUZST00tWU9VUi1UT0tFTiIsImFjdGl2ZUxpY2Vuc2UiOnsiaWNvbnMiOnRydWUsInZlY3RvcnMiOnRydWUsInBob3RvcyI6dHJ1ZSwic291bmRzIjp0cnVlLCJtY3BJY29uQXBpIjpmYWxzZSwibWNwSWNvbk1ldGFBcGkiOmZhbHNlLCJleHBpcmVBdCI6MTgzMDI5NzU5OTk5OX0sImVudiI6InByb2R1Y3Rpb24iLCJpYXQiOjE3ODgyNTg2NDAsImV4cCI6MTc4OTEyMjY0MH0.EXAMPLE-SIGNATURE-NOT-VALID",
+    "secure": true,
+    "httpOnly": false,
+    "hostOnly": false,
+    "expirationDate": 1789122640.0
+  },
+  {
+    "domain": ".icons8.com",
+    "name": "i8user_paid",
+    "path": "/",
+    "value": "1",
+    "secure": false,
+    "httpOnly": false,
+    "hostOnly": false,
+    "expirationDate": 1789122640.0
+  },
+  {
+    "domain": ".icons8.com",
+    "name": "i8region",
+    "path": "/",
+    "value": "AU",
+    "secure": false,
+    "httpOnly": false,
+    "hostOnly": false,
+    "expirationDate": 1789122640.0
+  }
+]
