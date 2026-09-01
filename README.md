@@ -1,73 +1,50 @@
 <div align="center">
 
-# icons8-mcp-server
+# better-icons8-mcp
 
 **MCP server for the full Icons8 library: icons, illustrations, animated illustrations, 3D models and photos, in every format Icons8 serves.**
 
-[![CI](https://github.com/torkay/icons8-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/torkay/icons8-mcp-server/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/torkay/icons8-mcp-server.svg)](https://pkg.go.dev/github.com/torkay/icons8-mcp-server)
-[![Go Report Card](https://goreportcard.com/badge/github.com/torkay/icons8-mcp-server)](https://goreportcard.com/report/github.com/torkay/icons8-mcp-server)
-[![Release](https://img.shields.io/github/v/release/torkay/icons8-mcp-server?color=674EFF)](https://github.com/torkay/icons8-mcp-server/releases)
+[![CI](https://github.com/torkay/better-icons8-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/torkay/better-icons8-mcp/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/torkay/better-icons8-mcp.svg)](https://pkg.go.dev/github.com/torkay/better-icons8-mcp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/torkay/better-icons8-mcp)](https://goreportcard.com/report/github.com/torkay/better-icons8-mcp)
+[![Release](https://img.shields.io/github/v/release/torkay/better-icons8-mcp?color=674EFF)](https://github.com/torkay/better-icons8-mcp/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 </div>
 
-It authenticates with a browser session from an Icons8 account you already have. Any MCP host (Claude Code, Cursor, Windsurf, VS Code agent mode) can then search 172 icon styles and 345 illustration styles, and write SVG, Lottie, WebM, MP4, FBX, GLB and photo files to disk.
+Install it as a Claude Code plugin, sign in to Icons8 once in a browser window, and any MCP host can search 172 icon styles and 345 illustration styles and write SVG, Lottie, WebM, MP4, FBX, GLB and photo files to disk. There is no API key and nothing to paste.
 
-The purpose is to give a coding agent licensed artwork to use, in place of emoji, CSS shapes and placeholder boxes.
+![Installing the plugin in Claude Code and signing in to Icons8](demo/quickstart.gif)
 
-![Installing icons8-mcp-server with go install, importing a browser cookie dump, and registering the server with Claude Code](demo/quickstart.gif)
+## Installation
 
-## How this differs from the official Icons8 MCP server
+Inside Claude Code:
 
-Icons8 publishes [`icons8/icons8-mcp`](https://github.com/icons8/icons8-mcp). It is hosted, needs no setup, and serves icons: 368,865 of them across 116 design styles. It does not serve illustrations, animated illustrations, 3D models or photos. Its free tier returns 100x100 PNG previews that require attribution. Production SVG requires an API key from a paid Icons plan.
+```
+/plugin marketplace add torkay/better-icons8-mcp
+/plugin install icons8@better-icons8-mcp
+```
 
-Icons8 access through the [GitHub Student Developer Pack](https://education.github.com/pack) covers "downloads of all asset types with no limits on quantity, size, or format". [Icons8 states](https://intercom.help/icons8-7fb7577e8170/en/articles/4729193-do-you-have-discounts-for-students) that it "does not include API access or the MCP server". Those require a separate Icons subscription. The licence permits downloading every asset in the catalogue by hand, and gives tooling no way to reach any of it.
+Then ask Claude to connect your account. It calls `icons8_authorize`, a browser window opens on the Icons8 sign-in page, and the session is stored on your machine when you log in. That is the entire setup.
 
-This server uses the same web client the licence already covers. What an agent can reach is what you could have clicked.
+The plugin fetches the server binary for your platform on first run and verifies it against the published checksum, so Go is not required.
 
-|  | Official `icons8/icons8-mcp` | This server |
-|---|---|---|
-| Icons | Yes | Yes |
-| Illustrations, animated, 3D, photos | No | Yes |
-| Auth | API key from a paid Icons plan | Existing browser session |
-| Runs | Hosted HTTP | Local binary over stdio |
-| SVG | Paid tier | Whatever the plan covers |
-| Tools | Icon search and fetch | 18, including favicon sets and embeds |
-
-> [!IMPORTANT]
-> This is a client for an account you already have. It does not unlock anything a plan does not cover and does not bypass payment. Every request is authenticated as you and carries the same licence terms as clicking Download in the browser. See [Icons8's licensing](https://icons8.com/license).
-
-## Quick start
-
-Requires Go 1.27 or later and an Icons8 account.
+<details>
+<summary>Other MCP hosts, or no plugin system</summary>
 
 ```sh
-go install github.com/torkay/icons8-mcp-server/cmd/icons8-mcp@latest
+go install github.com/torkay/better-icons8-mcp/cmd/icons8-mcp@latest
+icons8-mcp auth       # opens the sign-in window
+icons8-mcp status     # confirms the account and licence
 ```
 
-Export cookies for `icons8.com` while signed in. Any "export cookies as JSON" browser extension produces the right format. The dump must contain the `i8token` cookie. [`demo/cookies.example.json`](demo/cookies.example.json) shows the expected shape.
-
-```sh
-icons8-mcp -import ~/Downloads/cookies.json
-icons8-mcp -check
-```
-
-```
-account:  you@example.com
-licence:  icons=true vectors=true photos=true sounds=true
-token:    valid until 2026-09-11 20:30 AEST
-assets:   ~/.icons8-mcp/assets
-```
-
-Register it with an MCP host:
+Then register the binary. For Claude Code:
 
 ```sh
 claude mcp add icons8 -s user -- icons8-mcp
 ```
 
-<details>
-<summary>Other MCP hosts (Cursor, Windsurf, VS Code, Claude Desktop)</summary>
+For Cursor, Windsurf, VS Code agent mode and Claude Desktop:
 
 ```json
 {
@@ -79,15 +56,38 @@ claude mcp add icons8 -s user -- icons8-mcp
 }
 ```
 
+`icons8-mcp` with no arguments is the MCP server speaking stdio, which is what the host runs. The subcommands are for the parts a person does by hand: `auth`, `status`, `tools`, and `import <file>` for machines with no display.
+
 </details>
 
 Downloads land in `~/.icons8-mcp/assets/{icons,illustrations,models3d,photos}/`. Download tools return the path they wrote, never the bytes. A 2 MB base64 PNG in a tool result is unusable context.
 
+## Why not just use icons8-mcp@icons8?
+
+Because it only does icons, and only on a paid plan.
+
+The official server exposes two tools over hosted HTTP: icon search and icon fetch. Illustrations, animated illustrations, 3D models and photos are not behind it at any price. Its free tier returns 100x100 PNG previews that require attribution, and production SVG needs an API key from a paid Icons subscription.
+
+That subscription is the problem for anyone whose access came from the [GitHub Student Developer Pack](https://education.github.com/pack). The pack covers "downloads of all asset types with no limits on quantity, size, or format", and [Icons8 states](https://intercom.help/icons8-7fb7577e8170/en/articles/4729193-do-you-have-discounts-for-students) that it "does not include API access or the MCP server". Those require a separate Icons subscription. The licence already permits every download; only the machine-readable path is withheld.
+
+|  | icons8-mcp | Better icons8 mcp |
+|---|---|---|
+| Icons | ✅ | ✅ |
+| Illustrations | ❌ | ✅ |
+| Animated assets | ❌ | ✅ |
+| 3D assets | ❌ | ✅ |
+| Photos | ❌ | ✅ |
+| Auth | Paid API key | Free student subscription |
+| Runs | Hosted HTTP | Local binary over stdio |
+| SVG | Paid tier | Reflects plan |
+| Tools | 2 | 19 |
+
+> [!IMPORTANT]
+> This is a client for an account you already have. It does not unlock anything a plan does not cover and does not bypass payment. Every request is authenticated as you and carries the same licence terms as clicking Download in the browser. See [Icons8's licensing](https://icons8.com/license).
+
 ## Tools
 
-`icons8-mcp -tools` prints the live list. It starts the server against an in-process client, so the output is the actual registration.
-
-![Listing all 18 registered MCP tools](demo/tools.gif)
+![Claude Code searching Icons8 and downloading matched assets](demo/usage.gif)
 
 **Icons**
 
@@ -125,6 +125,7 @@ Downloads land in `~/.icons8-mcp/assets/{icons,illustrations,models3d,photos}/`.
 
 | Tool | Does |
 |---|---|
+| `icons8_authorize` | Open the sign-in window and store the session. Run once |
 | `icons8_account` | Identity, licence coverage, token expiry, asset directory |
 
 One prompt is registered, `icons8_asset_plan`. It walks an agent through choosing a style and sourcing the assets an artefact needs.
@@ -151,23 +152,20 @@ One prompt is registered, `icons8_asset_plan`. It walks an agent through choosin
 `icons8.com` serves its HTML behind a Cloudflare managed challenge. Its API subdomains are not challenged. That is what makes a plain HTTP client viable.
 
 - **Tool calls are plain HTTP.** Requests go to `search-app`, `api-icons`, `api-img`, `api-ouch` and `photos`, rate-limited, carrying the session JWT and a stable browser fingerprint. No browser process, no page loads, no captcha solver.
-- **The session renews itself.** `GET /user/v2` returns a freshly minted JWT on every call. A background loop keeps a 10-day token alive from one cookie dump. Cookies are imported once.
-- **A headless browser is the fallback.** If a request is rejected as unauthorized and the cheap refresh does not fix it, [go-rod](https://github.com/go-rod/rod) with [`go-rod/stealth`](https://github.com/go-rod/stealth) drives a real Chromium through the Cloudflare challenge and harvests the resulting session. Measured at about 14 seconds by `go run ./cmd/reauthcheck`. The same tooling mapped the API in the first place.
+- **Sign-in is a real browser, once.** `icons8_authorize` opens a visible Chromium at the Icons8 login page and waits for the `i8token` cookie to appear with readable claims. That is the one signal common to email, Google, Apple and GitHub sign-in, which do not share a completion event.
+- **The session renews itself.** `GET /user/v2` returns a freshly minted JWT on every call. A background loop keeps a 10-day token alive, so signing in is a one-off.
+- **A headless browser handles recovery.** If a request is rejected as unauthorized and the cheap refresh does not fix it, [go-rod](https://github.com/go-rod/rod) with [`go-rod/stealth`](https://github.com/go-rod/stealth) drives a real Chromium through the Cloudflare challenge and harvests the resulting session. Measured at about 14 seconds by `go run ./cmd/reauthcheck`.
 
 > [!NOTE]
-> Limit worth knowing: the only credential in a cookie dump is `i8token`. If it lapses completely the browser loads the site logged out and cannot recover. The server reports this and asks for a fresh dump. The rolling refresh is intended to prevent it.
+> On a machine with no display, the sign-in window cannot open. Export cookies for `icons8.com` and run `icons8-mcp import <file>` instead. [`demo/cookies.example.json`](demo/cookies.example.json) shows the expected shape.
 
 `docs/api.md` holds the endpoint map. Read it before changing a query. Several Icons8 parameters fail silently: a wrong parameter name returns HTTP 200 with unfiltered results instead of an error. Illustration filters are split across two mechanisms. `style_pretty_id` and `animated` are query parameters. `mood`, `technique` and `colors` belong inside a `meta` JSON blob. Sending one in the other's place is ignored.
 
 ## The skill
 
-[`skills/design-assets/SKILL.md`](skills/design-assets/SKILL.md) is the part that changes agent behaviour. Connecting a server does not stop a model improvising artwork. An instruction to treat assets as part of the plan does.
+The plugin also installs [`design-assets`](plugins/icons8/skills/design-assets/SKILL.md), which is the part that changes agent behaviour. Connecting a server does not stop a model improvising artwork. An instruction to treat assets as part of the plan does.
 
 Its main rule is to pick one icon style and one illustration style before searching. There are 172 and 345 of them. Mixing styles is the most common reason a generated interface looks assembled rather than designed. The rest of the file is a format table, a note that the "locked" badge is bookkeeping rather than a restriction, and a list of substitutions to avoid.
-
-```sh
-mkdir -p ~/.claude/skills && cp -r skills/design-assets ~/.claude/skills/
-```
 
 ## Configuration
 
@@ -177,13 +175,15 @@ Every setting is an environment variable with a working default.
 |---|---|---|
 | `ICONS8_MCP_HOME` | `~/.icons8-mcp` | State directory |
 | `ICONS8_ASSET_DIR` | `$ICONS8_MCP_HOME/assets` | Where downloads land |
-| `ICONS8_COOKIE_FILE` | `$ICONS8_MCP_HOME/cookies.json` | Session bootstrap |
+| `ICONS8_COOKIE_FILE` | `$ICONS8_MCP_HOME/cookies.json` | Session bootstrap for `import` |
 | `ICONS8_RPS` | `6` | Requests per second ceiling |
 | `ICONS8_CONCURRENCY` | `4` | Parallel requests |
 | `ICONS8_REFRESH_INTERVAL` | `6h` | Rolling JWT refresh |
-| `ICONS8_BROWSER_FALLBACK` | `1` | `0` disables headless Chrome |
-| `ICONS8_HEADFUL` | unset | `1` shows the fallback browser |
+| `ICONS8_AUTH_TIMEOUT` | `5m` | How long the sign-in window waits |
+| `ICONS8_BROWSER_FALLBACK` | `1` | `0` disables Chrome, including sign-in |
+| `ICONS8_HEADFUL` | unset | `1` shows the recovery browser |
 | `ICONS8_LOCALE` | `en-US` | Search language |
+| `ICONS8_MCP_BIN` | unset | Path to a binary the plugin launcher should use instead of downloading one |
 
 ## Development
 
@@ -191,6 +191,7 @@ Every setting is an environment variable with a working default.
 go test ./...                              # offline unit tests
 go run ./cmd/smoke -bin ./dist/icons8-mcp  # 29 checks against the live API
 go run ./cmd/reauthcheck                   # exercise headless-browser recovery
+claude --plugin-dir ./plugins/icons8       # load the plugin without installing it
 ```
 
 The smoke suite drives the built binary over stdio the way an MCP host does. Later checks reuse ids and styles taken from earlier results rather than hard-coded fixtures, so it fails when the API changes shape.
