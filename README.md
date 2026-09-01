@@ -16,6 +16,8 @@ It authenticates with a browser session from an Icons8 account you already have.
 
 The purpose is to give a coding agent licensed artwork to use, in place of emoji, CSS shapes and placeholder boxes.
 
+![Installing icons8-mcp-server with go install, importing a browser cookie dump, and registering the server with Claude Code](demo/quickstart.gif)
+
 ## How this differs from the official Icons8 MCP server
 
 Icons8 publishes [`icons8/icons8-mcp`](https://github.com/icons8/icons8-mcp). It is hosted, needs no setup, and serves icons: 368,865 of them across 116 design styles. It does not serve illustrations, animated illustrations, 3D models or photos. Its free tier returns 100x100 PNG previews that require attribution. Production SVG requires an API key from a paid Icons plan.
@@ -84,6 +86,8 @@ Downloads land in `~/.icons8-mcp/assets/{icons,illustrations,models3d,photos}/`.
 ## Tools
 
 `icons8-mcp -tools` prints the live list. It starts the server against an in-process client, so the output is the actual registration.
+
+![Listing all 18 registered MCP tools](demo/tools.gif)
 
 **Icons**
 
@@ -191,7 +195,11 @@ go run ./cmd/reauthcheck                   # exercise headless-browser recovery
 
 The smoke suite drives the built binary over stdio the way an MCP host does. Later checks reuse ids and styles taken from earlier results rather than hard-coded fixtures, so it fails when the API changes shape.
 
+![Running the search half of the smoke suite against the live Icons8 API](demo/live.gif)
+
 `cmd/recon` and `cmd/reconflow` are the discovery tools that produced `docs/api.md`. `reconflow` shims `fetch`, `XMLHttpRequest`, `URL.createObjectURL` and `HTMLAnchorElement.click` inside the page, because CDP's Network domain misses requests that finish as browser-level downloads. That is how the SVG download endpoint was found.
+
+Demo GIFs are recorded with [VHS](https://github.com/charmbracelet/vhs): `make demo`.
 
 ## Acknowledgements
 
