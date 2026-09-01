@@ -6,19 +6,19 @@
 Output demo/live.gif
 
 Set Shell "bash"
-Set FontFamily "JetBrainsMono Nerd Font"
+Set FontFamily "DejaVu Sans Mono"
 Set FontSize 18
 Set Width 1400
-Set Height 640
+Set Height 420
 Set Padding 30
 Set Margin 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 40ms
+Set TypingSpeed 45ms
 
 Hide
-Type "cd /home/claude/projects/icons8-mcp && export PS1='$ ' && clear"
+Type "export PS1='$ ' && clear"
 Enter
 Sleep 1s
 Show
@@ -26,4 +26,4 @@ Show
 Type "go run ./cmd/smoke -bin ./dist/icons8-mcp -only search"
 Sleep 500ms
 Enter
-Sleep 15s
+Sleep 14s
