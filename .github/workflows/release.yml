@@ -54,7 +54,14 @@ jobs:
           path: dist
           merge-multiple: true
 
+      # The plugin launcher downloads one of these and executes it, so publish
+      # something for it to check the download against.
+      - name: checksums
+        run: cd dist && sha256sum *.tar.gz > checksums.txt && cat checksums.txt
+
       - uses: softprops/action-gh-release@v3
         with:
-          files: dist/*.tar.gz
+          files: |
+            dist/*.tar.gz
+            dist/checksums.txt
           generate_release_notes: true
