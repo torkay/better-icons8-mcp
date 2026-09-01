@@ -26,7 +26,7 @@ Enter
 Sleep 1s
 Show
 
-Type "go install github.com/torkay/icons8-mcp-server/cmd/icons8-mcp@latest"
+Type "go install github.com/torkay/better-icons8-mcp/cmd/icons8-mcp@latest"
 Sleep 500ms
 Enter
 Sleep 6s

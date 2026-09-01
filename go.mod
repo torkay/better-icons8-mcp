@@ -1,4 +1,4 @@
-module github.com/torkay/icons8-mcp-server
+module github.com/torkay/better-icons8-mcp
 
 go 1.27.0
 

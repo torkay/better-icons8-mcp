@@ -12,9 +12,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/torkay/icons8-mcp-server/internal/browser"
-	"github.com/torkay/icons8-mcp-server/internal/config"
-	"github.com/torkay/icons8-mcp-server/internal/session"
+	"github.com/torkay/better-icons8-mcp/internal/browser"
+	"github.com/torkay/better-icons8-mcp/internal/config"
+	"github.com/torkay/better-icons8-mcp/internal/session"
 )
 
 func main() {

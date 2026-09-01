@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/torkay/icons8-mcp-server/internal/assets"
-	"github.com/torkay/icons8-mcp-server/internal/icons8"
+	"github.com/torkay/better-icons8-mcp/internal/assets"
+	"github.com/torkay/better-icons8-mcp/internal/icons8"
 )
 
 type IllustrationSummary struct {
