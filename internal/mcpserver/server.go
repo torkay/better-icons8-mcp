@@ -64,6 +64,7 @@ func New(cfg *config.Config, logger *log.Logger) (*Server, error) {
 
 func (s *Server) registerTools() {
 	s.registerIconTools()
+	s.registerIllustrationTools()
 }
 
 // reauth repairs an expired session: first try the cheap rolling refresh, and
