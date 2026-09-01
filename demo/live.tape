@@ -15,7 +15,7 @@ Set Margin 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 45ms
+Set TypingSpeed 30ms
 
 Hide
 Type "export PS1='$ ' && clear"
@@ -24,6 +24,7 @@ Sleep 1s
 Show
 
 Type "go run ./cmd/smoke -bin ./dist/icons8-mcp -only search"
-Sleep 500ms
+Sleep 150ms
 Enter
-Sleep 14s
+Wait+Screen@90s /passed, 0 failed/
+Sleep 1500ms

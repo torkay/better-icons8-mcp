@@ -14,7 +14,7 @@ Set Margin 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 40ms
+Set TypingSpeed 30ms
 
 Hide
 Type "cd /tmp/i8demo-project && export PS1='$ '"
@@ -25,11 +25,12 @@ Sleep 1s
 Show
 
 Type "claude"
-Sleep 400ms
+Sleep 150ms
 Enter
-Sleep 10s
+Wait+Screen@60s /to cycle/
+Sleep 600ms
 
 Type "I'm building a landing page for a rocket-launch SaaS. Pick one icon style and one illustration style, then download a hero illustration, three feature icons as SVG, and a favicon set. Report the paths."
-Sleep 400ms
+Sleep 150ms
 Enter
-Sleep 150s
+Sleep 110s
