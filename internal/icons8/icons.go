@@ -111,13 +111,45 @@ func (c *Client) IconVariants(ctx context.Context, id string) ([]IconVariant, er
 	return out.Variants, nil
 }
 
+// vectorIcon is the shape the vector-similarity endpoint returns. It differs
+// from the search endpoint: category, categoryApiCode and subcategory come back
+// as arrays there and as plain strings here, so it needs its own type.
+type vectorIcon struct {
+	ID              string     `json:"id"`
+	CommonID        string     `json:"commonId"`
+	CommonName      string     `json:"commonName"`
+	Name            string     `json:"name"`
+	Category        StringList `json:"category"`
+	CategoryAPICode StringList `json:"categoryApiCode"`
+	Subcategory     StringList `json:"subcategory"`
+	Platform        string     `json:"platform"`
+	SourceFormat    string     `json:"sourceFormat"`
+	IsColor         bool       `json:"isColor"`
+	IsAnimated      bool       `json:"isAnimated"`
+	IsExplicit      bool       `json:"isExplicit"`
+	NeedBackground  bool       `json:"needBackground"`
+	AuthorAPICode   string     `json:"authorApiCode"`
+	IsExternal      bool       `json:"isExternal"`
+}
+
+func (v vectorIcon) toIcon() Icon {
+	return Icon{
+		ID: v.ID, CommonID: v.CommonID, Name: v.Name, CommonName: v.CommonName,
+		Category: v.Category.First(), CategoryAPICode: v.CategoryAPICode.First(),
+		Subcategory: v.Subcategory.First(), Platform: v.Platform,
+		IsColor: v.IsColor, IsAnimated: v.IsAnimated, IsExplicit: v.IsExplicit,
+		NeedBackground: v.NeedBackground, AuthorAPICode: v.AuthorAPICode,
+		IsExternal: v.IsExternal, SourceFormat: v.SourceFormat,
+	}
+}
+
 // SimilarIcons returns visually related icons across styles.
 func (c *Client) SimilarIcons(ctx context.Context, id string, limit int) ([]Icon, error) {
 	if limit <= 0 {
 		limit = 30
 	}
 	var out struct {
-		Icons []Icon `json:"icons"`
+		Icons []vectorIcon `json:"icons"`
 	}
 	u := buildURL(HostIconSearch, "/api/iconsets/vector/search/id", map[string]string{
 		"id": id, "limit": strconv.Itoa(limit), "language": c.cfg.Language(),
@@ -125,7 +157,11 @@ func (c *Client) SimilarIcons(ctx context.Context, id string, limit int) ([]Icon
 	if err := c.GetJSON(ctx, u, &out); err != nil {
 		return nil, err
 	}
-	return out.Icons, nil
+	icons := make([]Icon, 0, len(out.Icons))
+	for _, v := range out.Icons {
+		icons = append(icons, v.toIcon())
+	}
+	return icons, nil
 }
 
 // FilterOption is one entry in the style/category filter tree the UI renders.
