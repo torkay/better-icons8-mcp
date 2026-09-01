@@ -1,45 +1,47 @@
 # vhs demo/quickstart.tape
 #
-# Install, point it at a browser session, confirm the tools are wired up.
-# The cookie dump used here is demo/cookies.example.json, which carries a
-# fabricated JWT for you@example.com, so no real session is recorded.
+# The whole setup: add the marketplace, install the plugin, then ask Claude
+# Code to connect the account. The plugin fetches the server binary for the
+# platform on first run, so nothing is installed beforehand.
 
 Output demo/quickstart.gif
 
 Set Shell "bash"
 Set FontFamily "DejaVu Sans Mono"
-Set FontSize 20
-Set Width 1280
-Set Height 380
-Set Padding 30
+Set FontSize 18
+Set Width 1400
+Set Height 700
+Set Padding 28
 Set Margin 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 Set Theme "Catppuccin Mocha"
-Set TypingSpeed 45ms
+Set TypingSpeed 40ms
 
 Hide
-Type "mkdir -p /tmp/i8quick && cp demo/cookies.example.json /tmp/i8quick/cookies.json && cd /tmp/i8quick"
+Type "cd /tmp/i8demo-project && export PS1='$ '"
 Enter
-Type "export ICONS8_MCP_HOME=/tmp/i8demo PATH=$HOME/go/bin:$PATH PS1='$ ' && rm -rf /tmp/i8demo && clear"
+Type "unset $(env | grep -o '^CLAUDE[A-Z_]*' | tr '\n' ' ') && clear"
 Enter
 Sleep 1s
 Show
 
-Type "go install github.com/torkay/better-icons8-mcp/cmd/icons8-mcp@latest"
-Sleep 500ms
+Type "claude plugin marketplace add torkay/better-icons8-mcp"
+Sleep 400ms
 Enter
-Sleep 6s
+Sleep 14s
 
-Type "icons8-mcp -import cookies.json"
-Sleep 500ms
+Type "claude plugin install icons8@better-icons8-mcp"
+Sleep 400ms
 Enter
-Sleep 3s
+Sleep 12s
 
-Type "icons8-mcp -tools | tail -3"
-Sleep 500ms
+Type "claude"
+Sleep 400ms
 Enter
-Sleep 3s
+Sleep 12s
 
-Type "claude mcp add icons8 -s user -- icons8-mcp"
-Sleep 4s
+Type "connect my icons8 account and tell me which asset types the licence covers. Don't print my email address."
+Sleep 400ms
+Enter
+Sleep 45s

@@ -27,6 +27,7 @@ demo: build
 	vhs demo/quickstart.tape
 	vhs demo/usage.tape
 	vhs demo/live.tape
+	bash demo/optimise.sh quickstart.gif usage.gif live.gif
 	bash demo/social-preview.sh
 
 clean:
