@@ -311,7 +311,25 @@ func (c *Client) IllustrationFilters(ctx context.Context, query string, models b
 var IllustrationFormats = []string{
 	"png-hd", "png", "png-low", "svg",
 	"gif", "gif-low", "json", "webm", "mov-avc", "mov-hevc", "aep",
-	"fbx", "sources",
+	"fbx-zip", "glb", "sources",
+}
+
+// mediaFormatAliases maps what an item advertises in
+// downloadable_resources.available onto the `media_format` value the download
+// endpoint wants. They agree for every format except FBX, which is advertised as
+// "fbx" but must be requested as "fbx-zip".
+var mediaFormatAliases = map[string]string{
+	"fbx": "fbx-zip",
+}
+
+// MediaFormat resolves a caller-supplied or advertised format token to the value
+// the download endpoint accepts.
+func MediaFormat(token string) string {
+	token = strings.ToLower(strings.TrimSpace(token))
+	if alias, ok := mediaFormatAliases[token]; ok {
+		return alias
+	}
+	return token
 }
 
 // FormatNotes explains what each format actually is, since the names are not
@@ -329,6 +347,8 @@ var FormatNotes = map[string]string{
 	"mov-hevc": "MP4/HEVC with alpha, best for Apple platforms",
 	"aep":      "Adobe After Effects project",
 	"fbx":      "3D model, FBX with textures, delivered as a zip",
+	"fbx-zip":  "3D model, FBX with textures, delivered as a zip",
+	"glb":      "3D model, glTF binary. Use this one on the web and in three.js",
 	"sources":  "original source files",
 }
 
@@ -345,6 +365,7 @@ func (c *Client) IllustrationDownloadURL(ctx context.Context, id, mediaFormat st
 	if mediaFormat == "" {
 		mediaFormat = "png-hd"
 	}
+	mediaFormat = MediaFormat(mediaFormat)
 	if !contains(IllustrationFormats, mediaFormat) {
 		return nil, fmt.Errorf("unsupported illustration format %q (want one of %s)",
 			mediaFormat, strings.Join(IllustrationFormats, ", "))
