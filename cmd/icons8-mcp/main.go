@@ -4,6 +4,7 @@
 //	icons8-mcp                 # run the server
 //	icons8-mcp -import a.json  # install a browser cookie dump, then exit
 //	icons8-mcp -check          # verify the session and print the account
+//	icons8-mcp -tools          # list the registered tools, then exit
 package main
 
 import (
@@ -16,8 +17,10 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/torkay/icons8-mcp-server/internal/config"
 	"github.com/torkay/icons8-mcp-server/internal/icons8"
 	"github.com/torkay/icons8-mcp-server/internal/mcpserver"
@@ -27,6 +30,7 @@ import (
 func main() {
 	importPath := flag.String("import", "", "install a browser cookie dump as the session bootstrap, then exit")
 	check := flag.Bool("check", false, "verify the session against Icons8 and print the account, then exit")
+	tools := flag.Bool("tools", false, "list the registered tools, then exit")
 	verbose := flag.Bool("v", false, "log to stderr")
 	flag.Parse()
 
@@ -56,6 +60,14 @@ func main() {
 
 	if *check {
 		if err := runCheck(ctx, cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "icons8-mcp: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if *tools {
+		if err := listTools(ctx, srv); err != nil {
 			fmt.Fprintf(os.Stderr, "icons8-mcp: %v\n", err)
 			os.Exit(1)
 		}
@@ -106,6 +118,49 @@ func importCookies(cfg *config.Config, src string) error {
 	_ = os.Remove(cfg.StatePath())
 	fmt.Fprintf(os.Stderr, "installed -> %s\n", cfg.CookieFile)
 	return nil
+}
+
+// listTools answers "is this thing actually wired up?" without needing an MCP
+// client. The server talks to an in-process client over a pair of in-memory
+// transports, so what gets printed is the real tool list, not a copy of it.
+func listTools(ctx context.Context, srv *mcpserver.Server) error {
+	serverT, clientT := mcp.NewInMemoryTransports()
+	ss, err := srv.Connect(ctx, serverT)
+	if err != nil {
+		return err
+	}
+	defer ss.Close()
+
+	cs, err := mcp.NewClient(&mcp.Implementation{Name: "icons8-mcp -tools", Version: mcpserver.Version}, nil).
+		Connect(ctx, clientT, nil)
+	if err != nil {
+		return err
+	}
+	defer cs.Close()
+
+	res, err := cs.ListTools(ctx, nil)
+	if err != nil {
+		return err
+	}
+	for _, t := range res.Tools {
+		fmt.Printf("%-30s %s\n", t.Name, firstSentence(t.Description))
+	}
+	fmt.Printf("\n%d tools\n", len(res.Tools))
+	return nil
+}
+
+// firstSentence keeps the listing one line per tool. Tool descriptions are
+// written for a model to read, so they are several sentences long; the opening
+// one is the part a human is scanning for.
+func firstSentence(desc string) string {
+	line, _, _ := strings.Cut(desc, "\n")
+	if s, _, ok := strings.Cut(line, ". "); ok {
+		line = s + "."
+	}
+	if len(line) > 96 {
+		line = strings.TrimRight(line[:95], " ,") + "…"
+	}
+	return line
 }
 
 func runCheck(ctx context.Context, cfg *config.Config) error {

@@ -113,6 +113,12 @@ func (s *Server) StartRefreshLoop(ctx context.Context) {
 	}()
 }
 
+// Connect attaches the server to one transport. Run uses stdio; this exists so
+// the binary can also talk to an in-process client (see `icons8-mcp -tools`).
+func (s *Server) Connect(ctx context.Context, t mcp.Transport) (*mcp.ServerSession, error) {
+	return s.mcp.Connect(ctx, t, nil)
+}
+
 func (s *Server) Run(ctx context.Context) error {
 	defer func() {
 		if s.browser != nil {
