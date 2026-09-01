@@ -73,18 +73,39 @@ func TestBootstrapFromCookieDump(t *testing.T) {
 	}
 }
 
-func TestMissingTokenIsAnActionableError(t *testing.T) {
+// A dump with no token has to load rather than fail. The server must start
+// before it can be authorised, or the host reports a broken server and the user
+// has no way in.
+func TestMissingTokenLoadsUnauthorized(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "cookies.json")
 	if err := os.WriteFile(path, []byte(`[{"name":"i8region","value":"AU","domain":"icons8.com"}]`), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	s, err := New(filepath.Join(dir, "session.json"), path)
+	if err != nil {
+		t.Fatalf("a dump without i8token should still load: %v", err)
+	}
+	if s.Authorized() {
+		t.Error("session should report itself unauthorized")
+	}
+	if len(s.Fingerprint()) != 32 {
+		t.Errorf("fingerprint should still be generated, got %q", s.Fingerprint())
+	}
+}
+
+func TestUnreadableDumpIsAnActionableError(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "cookies.json")
+	if err := os.WriteFile(path, []byte(`not json at all`), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	_, err := New(filepath.Join(dir, "session.json"), path)
 	if err == nil {
-		t.Fatal("expected an error when the dump has no i8token")
+		t.Fatal("expected an error for a dump that is not JSON")
 	}
-	if want := "i8token"; !strings.Contains(err.Error(), want) {
-		t.Errorf("error should name the missing cookie, got: %v", err)
+	if want := "cookie dump"; !strings.Contains(err.Error(), want) {
+		t.Errorf("error should say what it failed to read, got: %v", err)
 	}
 }
 

@@ -11,6 +11,8 @@ package browser
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -19,8 +21,8 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/go-rod/stealth"
-	"github.com/torkay/icons8-mcp-server/internal/config"
-	"github.com/torkay/icons8-mcp-server/internal/session"
+	"github.com/torkay/better-icons8-mcp/internal/config"
+	"github.com/torkay/better-icons8-mcp/internal/session"
 )
 
 type Browser struct {
@@ -176,6 +178,103 @@ func (b *Browser) Open(ctx context.Context, target string, settle time.Duration)
 	}
 	_ = page.Close()
 	return nil, fmt.Errorf("could not load %s: %s", target, lastState)
+}
+
+// Authorize opens a visible browser at the Icons8 sign-in page, waits for the
+// user to log in, then stores the session it produces. This is the whole setup
+// step: no cookie export, no extension, no pasting a token.
+//
+// It polls rather than watching for a navigation because Icons8 signs in
+// several ways (email, Google, Apple, GitHub) and they do not share a
+// completion event. The i8token cookie appearing with readable claims is the
+// one signal common to all of them.
+func (b *Browser) Authorize(ctx context.Context) (session.Claims, error) {
+	var zero session.Claims
+	if err := displayAvailable(); err != nil {
+		return zero, err
+	}
+
+	// A separate launcher from the warm fallback instance: this one is visible,
+	// lives as long as the user needs, and is thrown away afterwards.
+	l := launcher.New().
+		Headless(false).
+		Set("disable-blink-features", "AutomationControlled").
+		Set("no-first-run").
+		Set("no-default-browser-check").
+		Set("window-size", "1180,900")
+	ctrlURL, err := l.Launch()
+	if err != nil {
+		return zero, fmt.Errorf("open a browser to sign in: %w", err)
+	}
+	defer l.Cleanup()
+
+	br := rod.New().ControlURL(ctrlURL)
+	if err := br.Connect(); err != nil {
+		return zero, fmt.Errorf("connect to the sign-in browser: %w", err)
+	}
+	defer br.Close()
+
+	page, err := stealth.Page(br.Context(ctx))
+	if err != nil {
+		return zero, fmt.Errorf("open the sign-in page: %w", err)
+	}
+	if err := page.Navigate("https://icons8.com/login"); err != nil {
+		return zero, fmt.Errorf("load the sign-in page: %w", err)
+	}
+
+	deadline := time.Now().Add(b.cfg.AuthTimeout)
+	for {
+		select {
+		case <-ctx.Done():
+			return zero, ctx.Err()
+		default:
+		}
+		if time.Now().After(deadline) {
+			return zero, fmt.Errorf("timed out after %s waiting for sign-in", b.cfg.AuthTimeout)
+		}
+
+		cookies, err := page.Cookies([]string{"https://icons8.com"})
+		if err == nil {
+			for _, c := range cookies {
+				if c.Name != "i8token" || c.Value == "" {
+					continue
+				}
+				claims, err := session.ParseClaims(c.Value)
+				if err != nil || claims.Email == "" {
+					continue
+				}
+				if err := b.sess.SetToken(c.Value); err != nil {
+					return zero, err
+				}
+				out := make([]session.Cookie, 0, len(cookies))
+				for _, k := range cookies {
+					out = append(out, session.Cookie{
+						Domain: k.Domain, Name: k.Name, Path: k.Path, Value: k.Value,
+						Secure: k.Secure, HTTPOnly: k.HTTPOnly, Expires: float64(k.Expires),
+					})
+				}
+				if err := b.sess.SetCookies(out); err != nil {
+					return zero, err
+				}
+				return claims, nil
+			}
+		}
+		time.Sleep(time.Second)
+	}
+}
+
+// displayAvailable rejects the headful path early on a machine with no display,
+// where Chrome would fail with something far less useful than this.
+func displayAvailable() error {
+	switch runtime.GOOS {
+	case "darwin", "windows":
+		return nil
+	}
+	if os.Getenv("DISPLAY") != "" || os.Getenv("WAYLAND_DISPLAY") != "" {
+		return nil
+	}
+	return fmt.Errorf("no display available, so a sign-in window cannot be opened; " +
+		"sign in on a desktop machine, or export cookies for icons8.com and run `icons8-mcp import <file>`")
 }
 
 // Reauthenticate loads icons8.com in a real browser and harvests the session

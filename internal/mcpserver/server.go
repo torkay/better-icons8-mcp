@@ -14,14 +14,14 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/torkay/icons8-mcp-server/internal/assets"
-	"github.com/torkay/icons8-mcp-server/internal/browser"
-	"github.com/torkay/icons8-mcp-server/internal/config"
-	"github.com/torkay/icons8-mcp-server/internal/icons8"
-	"github.com/torkay/icons8-mcp-server/internal/session"
+	"github.com/torkay/better-icons8-mcp/internal/assets"
+	"github.com/torkay/better-icons8-mcp/internal/browser"
+	"github.com/torkay/better-icons8-mcp/internal/config"
+	"github.com/torkay/better-icons8-mcp/internal/icons8"
+	"github.com/torkay/better-icons8-mcp/internal/session"
 )
 
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 type Server struct {
 	cfg     *config.Config
@@ -63,6 +63,7 @@ func New(cfg *config.Config, logger *log.Logger) (*Server, error) {
 }
 
 func (s *Server) registerTools() {
+	s.registerAuthTools()
 	s.registerIconTools()
 	s.registerIllustrationTools()
 	s.registerPhotoTools()
@@ -93,7 +94,7 @@ func (s *Server) StartRefreshLoop(ctx context.Context) {
 	go func() {
 		// Refresh once at startup so a stale saved token is replaced before the
 		// first tool call rather than during it.
-		if s.sess.NeedsRefresh(48 * time.Hour) {
+		if s.sess.Authorized() && s.sess.NeedsRefresh(48*time.Hour) {
 			if err := s.client.RefreshToken(ctx); err != nil {
 				s.logf("startup token refresh failed: %v", err)
 			}
@@ -105,6 +106,9 @@ func (s *Server) StartRefreshLoop(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-t.C:
+				if !s.sess.Authorized() {
+					continue
+				}
 				if err := s.client.RefreshToken(ctx); err != nil {
 					s.logf("scheduled token refresh failed: %v", err)
 				}
@@ -114,7 +118,7 @@ func (s *Server) StartRefreshLoop(ctx context.Context) {
 }
 
 // Connect attaches the server to one transport. Run uses stdio; this exists so
-// the binary can also talk to an in-process client (see `icons8-mcp -tools`).
+// the binary can also talk to an in-process client (see `icons8-mcp tools`).
 func (s *Server) Connect(ctx context.Context, t mcp.Transport) (*mcp.ServerSession, error) {
 	return s.mcp.Connect(ctx, t, nil)
 }
@@ -149,6 +153,10 @@ func textResult(v any) *mcp.CallToolResult {
 
 const serverInstructions = `These tools provide licensed design assets: icons, illustrations, animated
 illustrations, 3D models and photos. Use them in place of improvised artwork.
+
+If a tool reports that it is not connected to an Icons8 account, call
+icons8_authorize. It opens a sign-in window for the user and stores the session
+on their machine. It is a one-off, and it is the only setup step there is.
 
 They apply to anything with a visual surface: a website, an app, a dashboard, a
 slide deck, a README, a diagram. Plan assets from the start.

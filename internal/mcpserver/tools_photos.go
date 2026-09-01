@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/torkay/icons8-mcp-server/internal/assets"
-	"github.com/torkay/icons8-mcp-server/internal/icons8"
+	"github.com/torkay/better-icons8-mcp/internal/assets"
+	"github.com/torkay/better-icons8-mcp/internal/icons8"
 )
 
 type PhotoSummary struct {
@@ -120,13 +120,22 @@ func (s *Server) registerPhotoTools() {
 		Description: "Report the signed-in Icons8 account, what its licence covers, and when the session token expires. Use it to diagnose auth problems.",
 		Annotations: &mcp.ToolAnnotations{ReadOnlyHint: true},
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ struct{}) (*mcp.CallToolResult, map[string]any, error) {
+		if !s.sess.Authorized() {
+			out := map[string]any{
+				"authorized": false,
+				"next_step":  "call icons8_authorize to sign in once; nothing else works until then",
+				"asset_dir":  s.store.Root(),
+			}
+			return textResult(out), out, nil
+		}
 		acct, err := s.client.Account(ctx)
 		if err != nil {
 			return nil, nil, err
 		}
 		claims := s.sess.Claims()
 		out := map[string]any{
-			"email": acct.Email,
+			"authorized": true,
+			"email":      acct.Email,
 			"licence": map[string]any{
 				"icons":   claims.License.Icons,
 				"vectors": claims.License.Vectors,

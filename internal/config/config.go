@@ -35,6 +35,10 @@ type Config struct {
 	// HTTP client cannot do (Cloudflare-gated pages, re-auth).
 	BrowserFallback bool
 	Headful         bool
+
+	// AuthTimeout is how long the sign-in window waits for the user. Signing in
+	// with a password manager and a 2FA code is not a ten-second job.
+	AuthTimeout time.Duration
 }
 
 const DefaultUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
@@ -56,6 +60,7 @@ func Load() *Config {
 		RefreshInterval:   envDur("ICONS8_REFRESH_INTERVAL", 6*time.Hour),
 		BrowserFallback:   envOr("ICONS8_BROWSER_FALLBACK", "1") != "0",
 		Headful:           os.Getenv("ICONS8_HEADFUL") == "1",
+		AuthTimeout:       envDur("ICONS8_AUTH_TIMEOUT", 5*time.Minute),
 	}
 	_ = os.MkdirAll(c.StateDir, 0o700)
 	_ = os.MkdirAll(c.AssetDir, 0o755)

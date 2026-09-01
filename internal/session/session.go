@@ -73,6 +73,11 @@ type Session struct {
 // New loads persisted state, falling back to the cookie dump for bootstrap.
 // Passing an explicit cookieFile that is newer than the saved state re-seeds the
 // token, so dropping in a fresh dump is always the way to recover.
+//
+// A session with no token is a valid result, not an error. The server has to
+// start before it can be authorised, otherwise the MCP host reports it as a
+// broken server rather than an unauthorised one, and there is no way in to fix
+// it. Callers gate on Authorized.
 func New(statePath, cookieFile string) (*Session, error) {
 	s := &Session{path: statePath}
 	_ = s.loadState()
@@ -96,9 +101,6 @@ func New(statePath, cookieFile string) (*Session, error) {
 		}
 	}
 
-	if s.st.Token == "" {
-		return nil, fmt.Errorf("no Icons8 token: put a browser cookie dump containing `i8token` at %s", cookieFile)
-	}
 	if s.st.Fingerprint == "" {
 		s.st.Fingerprint = newFingerprint()
 	}
@@ -148,6 +150,14 @@ func (s *Session) Token() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.st.Token
+}
+
+// Authorized reports whether there is a token to act with. It says nothing
+// about whether Icons8 still accepts that token; only a request can settle that.
+func (s *Session) Authorized() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.st.Token != ""
 }
 
 func (s *Session) Fingerprint() string {

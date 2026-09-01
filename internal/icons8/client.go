@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -20,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/torkay/icons8-mcp-server/internal/config"
-	"github.com/torkay/icons8-mcp-server/internal/session"
+	"github.com/torkay/better-icons8-mcp/internal/config"
+	"github.com/torkay/better-icons8-mcp/internal/session"
 	"golang.org/x/time/rate"
 )
 
@@ -69,6 +70,13 @@ type Client struct {
 	// wired up by the server so this package does not depend on the browser.
 	reauth func(ctx context.Context) error
 }
+
+// ErrNotAuthorized is returned before any request is attempted when no Icons8
+// session is stored. It is a distinct error because the fix is a one-off user
+// action rather than anything a retry can help with.
+var ErrNotAuthorized = errors.New(
+	"not connected to an Icons8 account: run the icons8_authorize tool, " +
+		"or `icons8-mcp auth` in a terminal, to sign in once")
 
 func New(cfg *config.Config, sess *session.Session) *Client {
 	return &Client{
@@ -128,6 +136,9 @@ func (c *Client) get(ctx context.Context, rawURL string, allowRetry bool) ([]byt
 }
 
 func (c *Client) do(ctx context.Context, method, rawURL string, payload []byte, allowRetry bool) ([]byte, string, error) {
+	if !c.sess.Authorized() {
+		return nil, "", ErrNotAuthorized
+	}
 	if err := c.limiter.Wait(ctx); err != nil {
 		return nil, "", err
 	}
