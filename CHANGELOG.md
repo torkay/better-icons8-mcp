@@ -5,6 +5,15 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-01
+
+### Changed
+
+- README now shows recorded terminal demos of install, the tool listing, and a
+  live run against the Icons8 API.
+- CI and release workflows moved to current major versions of the GitHub
+  Actions they use.
+
 ## [0.1.0] - 2026-09-01
 
 First public release.
@@ -27,5 +36,6 @@ First public release.
   that fail silently.
 - `cmd/smoke`, a 29-check live suite driving the built binary over stdio.
 
-[Unreleased]: https://github.com/torkay/icons8-mcp-server/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/torkay/icons8-mcp-server/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/torkay/icons8-mcp-server/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/torkay/icons8-mcp-server/releases/tag/v0.1.0
