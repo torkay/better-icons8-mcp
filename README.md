@@ -36,7 +36,7 @@ That calls `icons8_authorize`, which opens a browser window on the Icons8 sign-i
 The plugin fetches the server binary for your platform on first run and checks it against the published sha256, so Go is not required. It also installs the `design-assets` skill.
 
 > [!NOTE]
-> Use the full git URL. The `owner/repo` shorthand clones over SSH first and prints a fallback notice when no key is configured.
+> Use the full git URL. The `owner/repo` shorthand clones over SSH first, so without a key configured it prints `SSH not configured, cloning via HTTPS` before it works.
 
 ### Any other host
 
