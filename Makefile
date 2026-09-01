@@ -11,6 +11,7 @@ check:
 	claude plugin validate .
 	claude plugin validate ./plugins/icons8
 	sh -n plugins/icons8/bin/icons8-mcp
+	sh -n scripts/install.sh
 
 test:
 	go test ./...
