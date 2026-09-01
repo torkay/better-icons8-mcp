@@ -148,15 +148,12 @@ func (o *IllustrationSearchOptions) normalise(cfg func() string) {
 	}
 }
 
-// meta carries the filters as a JSON blob, which is how the web app sends them.
+// meta carries the facet filters. Icons8 splits its illustration filters across
+// two mechanisms: style/category/animated ride as ordinary query parameters,
+// while mood, technique and colour go inside this JSON blob. Putting one in the
+// other's place is silently ignored rather than rejected, so the split matters.
 func (o IllustrationSearchOptions) meta() string {
 	m := map[string][]string{}
-	if o.Style != "" {
-		m["style_pretty_ids"] = splitCSV(o.Style)
-	}
-	if o.Category != "" {
-		m["category_pretty_ids"] = splitCSV(o.Category)
-	}
 	if o.Mood != "" {
 		m["mood"] = splitCSV(o.Mood)
 	}
@@ -190,11 +187,13 @@ func (c *Client) SearchIllustrations(ctx context.Context, o IllustrationSearchOp
 	o.normalise(func() string { return c.cfg.Locale })
 
 	q := map[string]string{
-		"locale":   o.Locale,
-		"page":     strconv.Itoa(o.Page),
-		"per_page": strconv.Itoa(o.PerPage),
-		"meta":     o.meta(),
-		"search":   o.Query,
+		"locale":              o.Locale,
+		"page":                strconv.Itoa(o.Page),
+		"per_page":            strconv.Itoa(o.PerPage),
+		"meta":                o.meta(),
+		"search":              o.Query,
+		"style_pretty_id":     o.Style,
+		"category_pretty_ids": o.Category,
 	}
 	if o.Models {
 		q["model"] = "true"
