@@ -22,6 +22,9 @@ cd "$(dirname "$0")"
 speed="${SPEED:-1}"
 trim="${TRIM:-1}"
 dwell="${DWELL:-2}"   # seconds to hold the last frame that changed
+fps="${FPS:-12}"
+width="${WIDTH:-1200}"
+colors="${COLORS:-128}"
 
 for gif in "$@"; do
     [ -f "$gif" ] || { echo "no such file: $gif" >&2; exit 1; }
@@ -42,7 +45,7 @@ for gif in "$@"; do
 
     # shellcheck disable=SC2086
     ffmpeg -v error $cut -i "$gif" \
-        -vf "setpts=PTS/$speed,fps=12,scale=1200:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
+        -vf "setpts=PTS/$speed,fps=$fps,scale=$width:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=$colors[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" \
         -y "$gif.opt.gif"
     mv "$gif.opt.gif" "$gif"
 

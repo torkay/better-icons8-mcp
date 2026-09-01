@@ -28,7 +28,9 @@ demo: build
 	vhs demo/quickstart.tape
 	vhs demo/usage.tape
 	vhs demo/live.tape
-	SPEED=1.6 bash demo/optimise.sh quickstart.gif usage.gif
+	SPEED=1.6 bash demo/optimise.sh quickstart.gif
+	# The Claude Code session is the long one, so it gets the smaller frame.
+	SPEED=1.6 FPS=10 WIDTH=1000 COLORS=96 bash demo/optimise.sh usage.gif
 	bash demo/optimise.sh live.gif
 	bash demo/social-preview.sh
 
