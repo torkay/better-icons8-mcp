@@ -1,0 +1,52 @@
+name: Bug report
+description: Something behaves differently to how it is documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not paste a cookie dump, a session token, or a screenshot showing
+        one. Redact anything that looks like a credential.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The tool call or command, and the output it produced.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag or commit.
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: host
+    attributes:
+      label: MCP host
+      placeholder: Claude Code 2.1.0, Cursor, VS Code agent mode
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and Go version
+      placeholder: macOS 15.4 arm64, go1.27.0
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log
+      description: Output of `icons8-mcp -v` around the failure. Redact the account email.
+      render: text

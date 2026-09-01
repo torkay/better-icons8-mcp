@@ -1,0 +1,22 @@
+name: Feature request
+description: A tool, format or filter that is missing
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: Describe the task rather than the proposed API. It usually suggests a better shape.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you had in mind
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Icons8 endpoint, if known
+      description: docs/api.md lists the ones already mapped.
