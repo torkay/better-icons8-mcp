@@ -1,0 +1,17 @@
+# Never commit a session.
+cookies.json
+session.json
+
+# Build output.
+/dist/
+/recon
+/reconflow
+/reauthcheck
+
+# Recon scratch.
+/htmldump/
+recon*.jsonl
+flow-*.jsonl
+shot-*.png
+
+.DS_Store
