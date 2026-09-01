@@ -1,7 +1,7 @@
 # The Icons8 private API
 
-Mapped by recording the web app's own network traffic (`cmd/recon`)
-and reading its JS bundles. Everything here is verified against
+Mapped by recording the web app's own network traffic (`cmd/recon`,
+`cmd/reconflow`) and reading its JS bundles. Everything here is verified against
 the live service.
 
 ## Auth
@@ -129,3 +129,21 @@ AWS4-HMAC signature. Fetch them without the session headers. The signature is
 the authorisation, and some of these hosts reject a request that also carries an
 `Authorization` header. `Client.FetchSigned` handles this.
 
+## Re-running the discovery
+
+```sh
+go build ./cmd/recon ./cmd/reconflow
+
+# Record every API call a page makes
+./recon -cookies cookies.json -out recon.jsonl -pages icons,icon-detail,illustrations
+
+# Record one interaction with full headers and response bodies
+./reconflow -url https://icons8.com/icon/999/rocket \
+  -click 'sel:button.btn-download,text:SVG,xy:292x649' \
+  -js '() => window.__i8log'
+```
+
+`reconflow` shims `fetch`, `XMLHttpRequest`, `URL.createObjectURL` and
+`HTMLAnchorElement.click` inside the page. CDP's Network domain misses fetches
+that finish as browser-level downloads, which is how the SVG download request
+was found.
