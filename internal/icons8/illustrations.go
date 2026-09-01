@@ -198,8 +198,11 @@ func (c *Client) SearchIllustrations(ctx context.Context, o IllustrationSearchOp
 	if o.Models {
 		q["model"] = "true"
 	}
-	if o.Animated != "" {
-		q["animated"] = o.Animated
+	// The API takes animated as a boolean flag that is only ever sent when
+	// filtering to animated items; there is no "static only" value, so exclude
+	// them client-side instead.
+	if isAnimatedFilter(o.Animated) {
+		q["animated"] = "true"
 	}
 
 	// With no free-text term the search host returns nothing useful; the app
@@ -214,7 +217,35 @@ func (c *Client) SearchIllustrations(ctx context.Context, o IllustrationSearchOp
 	if err := c.GetJSON(ctx, buildURL(host, path, q), &out); err != nil {
 		return nil, err
 	}
+	// "static only" has no server-side representation, so apply it here. Search
+	// results carry no downloadable_resources, so fall back to the presence of
+	// motion assets on the item itself.
+	if isStaticFilter(o.Animated) {
+		kept := out.Illustrations[:0]
+		for _, i := range out.Illustrations {
+			if !i.HasMotion() {
+				kept = append(kept, i)
+			}
+		}
+		out.Illustrations = kept
+	}
 	return &out, nil
+}
+
+func isAnimatedFilter(v string) bool {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "y", "yes", "true", "animated":
+		return true
+	}
+	return false
+}
+
+func isStaticFilter(v string) bool {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "n", "no", "false", "static":
+		return true
+	}
+	return false
 }
 
 func (c *Client) Illustration(ctx context.Context, id string) (*Illustration, error) {
