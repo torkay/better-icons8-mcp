@@ -5,6 +5,19 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/install.sh`, so hosts without a plugin system can install the binary
+  without Go. It reads the tag off the `/releases/latest` redirect and verifies
+  the archive against `checksums.txt`.
+
+### Changed
+
+- README documents Codex, Gemini CLI, VS Code and Copilot, Cursor, Windsurf and
+  Claude Desktop alongside the Claude Code plugin.
+- Install instructions use the full git URL. The `owner/repo` shorthand clones
+  over SSH first and prints a fallback notice when no key is configured.
+
 ## [0.2.0] - 2026-09-01
 
 Renamed from `icons8-mcp-server` to `better-icons8-mcp`. The Go module path
