@@ -48,5 +48,5 @@ body:
     id: logs
     attributes:
       label: Server log
-      description: Output of `icons8-mcp -v` around the failure. Redact the account email.
+      description: Output of `icons8-mcp -v` (or the MCP host log) around the failure. Redact the account email.
       render: text

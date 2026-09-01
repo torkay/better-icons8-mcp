@@ -40,3 +40,16 @@ Cookie dumps, `session.json`, tokens, or anything else carrying a real session.
 
 Unit tests run offline. Anything needing the live API belongs in `cmd/smoke`,
 which is a program rather than a test package for that reason.
+
+## Cutting a release
+
+The plugin launcher downloads a pinned version, so three files carry the version
+number and all three have to move together:
+
+1. `VERSION` in `plugins/icons8/bin/icons8-mcp`
+2. `version` in `plugins/icons8/.claude-plugin/plugin.json`
+3. `version` for the plugin entry in `.claude-plugin/marketplace.json`
+
+Then update `CHANGELOG.md`, tag, and push the tag. The release workflow builds
+five platform archives and publishes `checksums.txt` alongside them, which is
+what the launcher verifies against.
