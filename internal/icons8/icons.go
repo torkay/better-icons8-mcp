@@ -226,15 +226,21 @@ func (c *Client) IconPack(ctx context.Context, style, category, sortBy string, a
 	if style == "" {
 		return nil, fmt.Errorf("style is required")
 	}
+	if category == "" {
+		return nil, fmt.Errorf("category is required; get one from icons8_icon_styles or from a search result's category field")
+	}
 	if amount <= 0 {
 		amount = 50
 	}
 	if sortBy == "" {
 		sortBy = "popular"
 	}
+	// The pack response nests its results under `category`, unlike search.
 	var raw struct {
-		Success bool   `json:"success"`
-		Icons   []Icon `json:"icons"`
+		Success  bool `json:"success"`
+		Category struct {
+			Icons []Icon `json:"icons"`
+		} `json:"category"`
 	}
 	u := buildURL(HostIconAPI, "/siteApi/icons/v1/packs/demarcation", map[string]string{
 		"amount": strconv.Itoa(amount), "offset": strconv.Itoa(offset),
@@ -243,10 +249,10 @@ func (c *Client) IconPack(ctx context.Context, style, category, sortBy string, a
 	if err := c.GetJSON(ctx, u, &raw); err != nil {
 		return nil, err
 	}
-	out := &IconSearchResult{Success: raw.Success, Icons: raw.Icons}
+	out := &IconSearchResult{Success: raw.Success, Icons: raw.Category.Icons}
 	out.Parameters.Amount = amount
 	out.Parameters.Offset = offset
-	out.Parameters.CountAll = len(raw.Icons)
+	out.Parameters.CountAll = len(raw.Category.Icons)
 	// Pack results omit `platform`, but every icon in a pack is in the style
 	// that was asked for, so fill it in rather than returning blanks.
 	for i := range out.Icons {
