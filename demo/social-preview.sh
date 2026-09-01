@@ -15,8 +15,8 @@ convert -size 1280x640 xc:'#674EFF' \
   -font "$MONO" -pointsize 26 -fill '#A9A9C4' -annotate +90+266 'MCP server for the whole Icons8 library' \
   -font "$MONO" -pointsize 25 -fill '#9C8CFF' -annotate +90+350 'icons   illustrations   animated   3D models   photos' \
   -font "$MONO" -pointsize 22 -fill '#77778F' -annotate +90+396 'svg  png  pdf  eps  lottie  webm  mp4  gif  aep  fbx  glb' \
-  -font "$MONO" -pointsize 22 -fill '#6E6E88' -annotate +90+500 '/plugin install icons8@better-icons8-mcp' \
-  -font "$MONO" -pointsize 22 -fill '#5EC98A' -annotate +90+548 '19 tools    Go    stdio    MIT' \
+  -font "$MONO" -pointsize 22 -fill '#6E6E88' -annotate +90+500 'Claude Code   Codex   Cursor   Windsurf   Copilot' \
+  -font "$MONO" -pointsize 22 -fill '#5EC98A' -annotate +90+548 '19 tools    no API key    Go    stdio    MIT' \
   "$OUT"
 
 identify "$OUT"
